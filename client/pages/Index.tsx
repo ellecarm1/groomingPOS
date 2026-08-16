@@ -13,11 +13,9 @@ import {
   Scissors,
   Sparkles,
   Star,
-  Printer,
   UserRound,
 } from "lucide-react";
 
-import { InvoicePreview } from "@/components/InvoicePreview";
 import { cn } from "@/lib/utils";
 import {
   formatCurrency,
@@ -96,11 +94,6 @@ export default function Index() {
   const openBooking = () => {
     saveEstimate(selected);
     window.open("/booking", "_blank", "noopener,noreferrer");
-  };
-
-  const printInvoice = () => {
-    saveEstimate(selected);
-    window.print();
   };
 
   return (
@@ -328,18 +321,6 @@ export default function Index() {
               </div>
             </div>
           </aside>
-        </section>
-
-        <section className="pb-12 pt-2" aria-labelledby="invoice-heading">
-          <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[#d2765d]">Ready for checkout</p>
-              <h2 id="invoice-heading" className="mt-1 font-display text-2xl font-bold tracking-[-0.045em] text-[#234438]">Final invoice preview</h2>
-              <p className="mt-2 text-sm text-[#788278]">This is exactly what will appear in the browser print dialog.</p>
-            </div>
-            <button type="button" onClick={printInvoice} disabled={selectedServices.length === 0} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#234438] px-4 py-3 text-xs font-extrabold text-white transition hover:bg-[#315847] disabled:cursor-not-allowed disabled:opacity-50"><Printer className="h-4 w-4" /> Print final invoice</button>
-          </div>
-          <InvoicePreview services={services} selected={selected} />
         </section>
 
         <footer className="flex flex-col gap-3 border-t border-[#dfe1d8] py-6 text-[11px] font-semibold text-[#89938a] sm:flex-row sm:items-center sm:justify-between">

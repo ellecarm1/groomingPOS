@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   ArrowLeft,
   ArrowRight,
@@ -8,10 +8,12 @@ import {
   CheckCircle2,
   Clock3,
   LockKeyhole,
+  Printer,
   Scissors,
   ShieldCheck,
 } from "lucide-react";
 
+import { InvoicePreview } from "@/components/InvoicePreview";
 import {
   formatCurrency,
   formatDuration,
@@ -19,6 +21,7 @@ import {
   getSelectedDuration,
   getServices,
   saveBooking,
+  type Booking as BookingData,
   type Service,
   type SelectedServices,
 } from "@/lib/catalog";
@@ -71,7 +74,6 @@ function isSlotAvailable(dateKey: string, time: string, durationMinutes: number)
 }
 
 export default function Booking() {
-  const navigate = useNavigate();
   const services = useMemo(() => getServices(), []);
   const selected = useMemo(() => getEstimate(), []);
   const selectedServices = services.filter((service) => selected[service.id]);
@@ -82,23 +84,31 @@ export default function Booking() {
   );
   const [selectedDate, setSelectedDate] = useState(dates[1].key);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [bookingConfirmed, setBookingConfirmed] = useState(false);
   const activeDate = dates.find((date) => date.key === selectedDate) || dates[1];
+  const previewBooking: BookingData | null = selectedTime ? {
+    dateKey: selectedDate,
+    dateLabel: activeDate.label,
+    time: selectedTime,
+    durationMinutes,
+    selected,
+  } : null;
 
   const chooseDate = (dateKey: string) => {
     setSelectedDate(dateKey);
     setSelectedTime(null);
+    setBookingConfirmed(false);
+  };
+
+  const chooseTime = (time: string) => {
+    setSelectedTime(time);
+    setBookingConfirmed(false);
   };
 
   const confirmBooking = () => {
-    if (!selectedTime) return;
-    saveBooking({
-      dateKey: selectedDate,
-      dateLabel: activeDate.label,
-      time: selectedTime,
-      durationMinutes,
-      selected,
-    });
-    navigate("/invoice");
+    if (!previewBooking) return;
+    saveBooking(previewBooking);
+    setBookingConfirmed(true);
   };
 
   return (
@@ -146,7 +156,7 @@ export default function Booking() {
               {timeSlots.map((time) => {
                 const available = isSlotAvailable(selectedDate, time, durationMinutes);
                 const active = selectedTime === time;
-                return <button key={time} type="button" disabled={!available} onClick={() => setSelectedTime(time)} className={`group flex items-center justify-between rounded-2xl border px-4 py-4 text-left transition ${active ? "border-[#234438] bg-[#234438] text-white" : available ? "border-[#e1e2da] bg-white text-[#315244] hover:border-[#9dbb91] hover:bg-[#f1f5ec]" : "cursor-not-allowed border-[#ededeb] bg-[#f0f0ec] text-[#b8bdb6]"}`}><span className="text-sm font-extrabold">{time}</span>{available ? <span className={`grid h-6 w-6 place-items-center rounded-full ${active ? "bg-[#d2765d] text-white" : "bg-[#e6eedf] text-[#6f905f]"}`}><Check className="h-3.5 w-3.5" /></span> : <LockKeyhole className="h-3.5 w-3.5" />}</button>;
+                return <button key={time} type="button" disabled={!available} onClick={() => chooseTime(time)} className={`group flex items-center justify-between rounded-2xl border px-4 py-4 text-left transition ${active ? "border-[#234438] bg-[#234438] text-white" : available ? "border-[#e1e2da] bg-white text-[#315244] hover:border-[#9dbb91] hover:bg-[#f1f5ec]" : "cursor-not-allowed border-[#ededeb] bg-[#f0f0ec] text-[#b8bdb6]"}`}><span className="text-sm font-extrabold">{time}</span>{available ? <span className={`grid h-6 w-6 place-items-center rounded-full ${active ? "bg-[#d2765d] text-white" : "bg-[#e6eedf] text-[#6f905f]"}`}><Check className="h-3.5 w-3.5" /></span> : <LockKeyhole className="h-3.5 w-3.5" />}</button>;
               })}
             </div>
             <div className="mt-6 flex flex-wrap gap-4 text-[11px] font-bold text-[#89938a]"><span className="inline-flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-[#7d9e72]" /> Available</span><span className="inline-flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-[#d4d6d0]" /> Already booked</span><span className="inline-flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-[#234438]" /> Your selection</span></div>
@@ -160,10 +170,24 @@ export default function Booking() {
             <div className="my-6 h-px bg-[#527060]" />
             <div className="flex items-end justify-between"><div><p className="text-xs font-semibold text-[#a7c0ad]">Estimated total</p><p className="mt-1 font-display text-4xl font-bold tracking-[-0.06em] text-white">{formatCurrency(subtotal)}</p></div><p className="pb-1 text-xs font-semibold text-[#a7c0ad]">before tax</p></div>
             <div className="mt-6 rounded-2xl bg-[#2c5140] px-4 py-3 text-xs leading-5 text-[#bcd0ba]"><span className="font-extrabold text-[#f8f4e8]">{activeDate.label}</span>{selectedTime ? <><br />Arrive at <span className="font-extrabold text-[#f8f4e8]">{selectedTime}</span></> : <><br />Choose a start time to continue.</>}</div>
-            <button type="button" disabled={!selectedTime} onClick={confirmBooking} className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#d2765d] px-5 py-3.5 text-sm font-extrabold text-white transition hover:bg-[#c66850] disabled:cursor-not-allowed disabled:opacity-50">Confirm appointment <ArrowRight className="h-4 w-4" /></button>
+            <button type="button" disabled={!previewBooking || bookingConfirmed} onClick={confirmBooking} className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#d2765d] px-5 py-3.5 text-sm font-extrabold text-white transition hover:bg-[#c66850] disabled:cursor-not-allowed disabled:opacity-50">{bookingConfirmed ? "Appointment confirmed" : "Confirm appointment"} {bookingConfirmed ? <CheckCircle2 className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}</button>
             <p className="mt-4 text-center text-[11px] leading-5 text-[#93b19b]">We’ll confirm final pricing in person.</p>
           </aside>
         </div>
+
+        {previewBooking && (
+          <section className="mt-10 border-t border-[#dfe1d8] pt-10" aria-labelledby="booking-invoice-heading">
+            <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+              <div>
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[#d2765d]">{bookingConfirmed ? "Appointment confirmed" : "One last look"}</p>
+                <h2 id="booking-invoice-heading" className="mt-1 font-display text-3xl font-bold tracking-[-0.055em] text-[#234438]">Final invoice</h2>
+                <p className="mt-2 text-sm leading-6 text-[#788278]">Your selected time and current service pricing are reflected below. Print this for the client when you’re ready.</p>
+              </div>
+              <button type="button" onClick={() => window.print()} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#234438] px-4 py-3 text-xs font-extrabold text-white transition hover:bg-[#315847]"><Printer className="h-4 w-4" /> Print final invoice</button>
+            </div>
+            <InvoicePreview services={services} selected={selected} booking={previewBooking} />
+          </section>
+        )}
       </div>
     </main>
   );
