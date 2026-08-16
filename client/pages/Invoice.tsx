@@ -13,7 +13,9 @@ export default function Invoice() {
 
   useEffect(() => {
     if (searchParams.get("autoprint") !== "1") return;
-    const timeoutId = window.setTimeout(() => window.print(), 400);
+    const timeoutId = window.setTimeout(() => {
+      requestAnimationFrame(() => requestAnimationFrame(() => window.print()));
+    }, 650);
     return () => window.clearTimeout(timeoutId);
   }, [searchParams]);
 

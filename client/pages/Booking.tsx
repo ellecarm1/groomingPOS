@@ -184,7 +184,7 @@ export default function Booking() {
                 <h2 id="booking-invoice-heading" className="mt-1 font-display text-3xl font-bold tracking-[-0.055em] text-[#234438]">Final invoice</h2>
                 <p className="mt-2 text-sm leading-6 text-[#788278]">Your selected time and current service pricing are reflected below. Print this for the client when you’re ready.</p>
               </div>
-              <button type="button" onClick={() => window.print()} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#234438] px-4 py-3 text-xs font-extrabold text-white transition hover:bg-[#315847]"><Printer className="h-4 w-4" /> Print final invoice</button>
+              <button type="button" onClick={() => window.open("/invoice?autoprint=1", "_blank", "noopener,noreferrer")} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#234438] px-4 py-3 text-xs font-extrabold text-white transition hover:bg-[#315847]"><Printer className="h-4 w-4" /> Print final invoice</button>
             </div>
             <InvoicePreview services={services} selected={selected} booking={previewBooking} />
           </section>
