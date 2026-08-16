@@ -1,9 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   ArrowRight,
   CalendarDays,
   Check,
-  CheckCircle2,
   ChevronDown,
   ChevronUp,
   Clock3,
@@ -13,77 +13,50 @@ import {
   Scissors,
   Sparkles,
   Star,
-  Trash2,
   UserRound,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import {
+  formatCurrency,
+  getEstimate,
+  getServices,
+  saveEstimate,
+  SERVICES_UPDATED_EVENT,
+  type Service,
+} from "@/lib/catalog";
 
-type Service = {
-  id: string;
-  name: string;
-  description: string;
-  duration: string;
-  price: number;
-  tag: string;
-  icon: typeof Scissors;
-  tone: string;
+const iconMap = {
+  scissors: Scissors,
+  droplets: Droplets,
+  heart: Heart,
+  sparkles: Sparkles,
 };
 
-const services: Service[] = [
-  {
-    id: "full-groom",
-    name: "Full groom",
-    description: "Bath, blow dry, haircut & finishing touches",
-    duration: "90–120 min",
-    price: 78,
-    tag: "Most popular",
-    icon: Scissors,
-    tone: "bg-[#e8f0dd] text-[#4f7035]",
-  },
-  {
-    id: "bath-brush",
-    name: "Bath & brush",
-    description: "A fresh wash, fluff dry and thorough brush out",
-    duration: "45–60 min",
-    price: 46,
-    tag: "Good to know",
-    icon: Droplets,
-    tone: "bg-[#e6edf5] text-[#49647f]",
-  },
-  {
-    id: "pawdicure",
-    name: "Pawdicure",
-    description: "Nail trim, paw balm and a little tidy-up",
-    duration: "20–30 min",
-    price: 24,
-    tag: "Quick add-on",
-    icon: Heart,
-    tone: "bg-[#f8e2db] text-[#ad5c4d]",
-  },
-  {
-    id: "deshed",
-    name: "De-shed treatment",
-    description: "Helps lift loose undercoat and keep shedding in check",
-    duration: "30–45 min",
-    price: 32,
-    tag: "Seasonal",
-    icon: Sparkles,
-    tone: "bg-[#f2ead6] text-[#927337]",
-  },
-];
-
-const formatCurrency = (value: number) => `$${value.toFixed(2)}`;
-
 export default function Index() {
-  const [selected, setSelected] = useState<Record<string, number>>({
-    "full-groom": 1,
+  const [selected, setSelected] = useState<Record<string, number>>(() => {
+    const saved = getEstimate();
+    return Object.keys(saved).length ? saved : { "full-groom": 1 };
   });
-  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [services, setServices] = useState<Service[]>(getServices);
+
+  useEffect(() => {
+    const syncServices = () => setServices(getServices());
+    window.addEventListener(SERVICES_UPDATED_EVENT, syncServices);
+    window.addEventListener("storage", syncServices);
+    return () => {
+      window.removeEventListener(SERVICES_UPDATED_EVENT, syncServices);
+      window.removeEventListener("storage", syncServices);
+    };
+  }, []);
+
+  useEffect(() => {
+    saveEstimate(selected);
+  }, [selected]);
 
   const selectedServices = useMemo(
     () => services.filter((service) => selected[service.id]),
-    [selected],
+    [selected, services],
   );
 
   const subtotal = selectedServices.reduce(
@@ -96,7 +69,6 @@ export default function Index() {
   );
 
   const toggleService = (id: string) => {
-    setShowConfirmation(false);
     setSelected((current) => {
       if (current[id]) {
         const next = { ...current };
@@ -108,7 +80,6 @@ export default function Index() {
   };
 
   const updateQuantity = (id: string, change: number) => {
-    setShowConfirmation(false);
     setSelected((current) => {
       const nextQuantity = (current[id] || 0) + change;
       if (nextQuantity <= 0) {
@@ -118,6 +89,11 @@ export default function Index() {
       }
       return { ...current, [id]: nextQuantity };
     });
+  };
+
+  const openBooking = () => {
+    saveEstimate(selected);
+    window.open("/booking", "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -139,16 +115,16 @@ export default function Index() {
             </div>
           </div>
 
-          <div className="hidden items-center gap-8 text-sm font-semibold text-[#6d796e] md:flex">
-            <span className="text-[#234438]">Services</span>
-            <span>How it works</span>
-            <span>Our studio</span>
-          </div>
+          <nav className="hidden items-center gap-8 text-sm font-semibold text-[#6d796e] md:flex" aria-label="Main navigation">
+            <Link to="/" className="text-[#234438]">Services</Link>
+            <Link to="/booking">How it works</Link>
+            <Link to="/admin">Our studio</Link>
+          </nav>
 
-          <button className="flex items-center gap-2 rounded-full border border-[#d6dbd1] bg-[#fbfaf7] px-3 py-2 text-sm font-bold text-[#315244] transition hover:border-[#aebca8] hover:bg-white sm:px-4">
+          <Link to="/admin" className="flex items-center gap-2 rounded-full border border-[#d6dbd1] bg-[#fbfaf7] px-3 py-2 text-sm font-bold text-[#315244] transition hover:border-[#aebca8] hover:bg-white sm:px-4">
             <UserRound className="h-4 w-4" />
             <span className="hidden sm:inline">My account</span>
-          </button>
+          </Link>
         </header>
 
         <section className="grid gap-10 pb-12 pt-12 sm:pt-16 lg:grid-cols-[minmax(0,1fr)_370px] lg:gap-16 lg:pb-16 lg:pt-[72px] xl:grid-cols-[minmax(0,1fr)_416px]">
@@ -184,7 +160,7 @@ export default function Index() {
 
             <div className="grid gap-3 sm:grid-cols-2">
               {services.map((service) => {
-                const Icon = service.icon;
+                const Icon = iconMap[service.icon];
                 const quantity = selected[service.id] || 0;
                 const isSelected = quantity > 0;
                 return (
@@ -235,7 +211,7 @@ export default function Index() {
                     <div className="mt-5 flex items-center justify-between border-t border-[#edf0e9] pt-4">
                       <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#89938a]">
                         <Clock3 className="h-3.5 w-3.5" />
-                        {service.duration}
+                        {service.durationLabel}
                       </span>
                       <span className="text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#b0b7ac]">
                         {service.tag}
@@ -335,11 +311,11 @@ export default function Index() {
                 <button
                   type="button"
                   disabled={selectedServices.length === 0}
-                  onClick={() => setShowConfirmation(true)}
-                  className="mt-5 flex h-13 w-full items-center justify-center gap-2 rounded-2xl bg-[#d2765d] px-5 py-3.5 text-sm font-extrabold text-white shadow-[0_12px_22px_-14px_rgba(210,118,93,0.9)] transition hover:bg-[#c66850] disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={openBooking}
+                  className="mt-5 flex h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-[#d2765d] px-5 py-3.5 text-sm font-extrabold text-white shadow-[0_12px_22px_-14px_rgba(210,118,93,0.9)] transition hover:bg-[#c66850] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {showConfirmation ? "Estimate saved" : "Continue to booking"}
-                  {showConfirmation ? <CheckCircle2 className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
+                  Continue to booking
+                  <ArrowRight className="h-4 w-4" />
                 </button>
                 <p className="mt-4 text-center text-[11px] leading-5 text-[#93b19b]">No payment needed today · change or cancel anytime</p>
               </div>
