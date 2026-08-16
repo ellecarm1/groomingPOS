@@ -132,12 +132,12 @@
     visibility: hidden !important;
   }
 
-  .invoice-print,
-  .invoice-print * {
+  .invoice-print-target,
+  .invoice-print-target * {
     visibility: visible !important;
   }
 
-  .invoice-print {
+  .invoice-print-target {
     position: absolute !important;
     inset: 0 !important;
     width: 100% !important;
@@ -145,14 +145,16 @@
     min-height: 0 !important;
     padding: 0 !important;
     background: #fff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  .invoice-print > div {
+  .invoice-print-target > div {
     max-width: none !important;
     margin: 0 !important;
   }
 
-  .invoice-print article {
+  .invoice-print-target article {
     border: 0 !important;
     border-radius: 0 !important;
     box-shadow: none !important;
