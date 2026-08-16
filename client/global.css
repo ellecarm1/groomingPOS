@@ -116,3 +116,49 @@
     font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   }
 }
+
+@media print {
+  @page {
+    margin: 0.5in;
+  }
+
+  html,
+  body {
+    min-width: 0;
+    background: #fff !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  .invoice-print,
+  .invoice-print * {
+    visibility: visible !important;
+  }
+
+  .invoice-print {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  .invoice-print > div {
+    max-width: none !important;
+    margin: 0 !important;
+  }
+
+  .invoice-print article {
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .print-controls {
+    display: none !important;
+  }
+}
