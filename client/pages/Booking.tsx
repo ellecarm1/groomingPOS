@@ -109,6 +109,7 @@ export default function Booking() {
     if (!previewBooking) return;
     saveBooking(previewBooking);
     setBookingConfirmed(true);
+    window.open("/invoice?autoprint=1", "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -171,7 +172,7 @@ export default function Booking() {
             <div className="flex items-end justify-between"><div><p className="text-xs font-semibold text-[#a7c0ad]">Estimated total</p><p className="mt-1 font-display text-4xl font-bold tracking-[-0.06em] text-white">{formatCurrency(subtotal)}</p></div><p className="pb-1 text-xs font-semibold text-[#a7c0ad]">before tax</p></div>
             <div className="mt-6 rounded-2xl bg-[#2c5140] px-4 py-3 text-xs leading-5 text-[#bcd0ba]"><span className="font-extrabold text-[#f8f4e8]">{activeDate.label}</span>{selectedTime ? <><br />Arrive at <span className="font-extrabold text-[#f8f4e8]">{selectedTime}</span></> : <><br />Choose a start time to continue.</>}</div>
             <button type="button" disabled={!previewBooking || bookingConfirmed} onClick={confirmBooking} className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#d2765d] px-5 py-3.5 text-sm font-extrabold text-white transition hover:bg-[#c66850] disabled:cursor-not-allowed disabled:opacity-50">{bookingConfirmed ? "Appointment confirmed" : "Confirm appointment"} {bookingConfirmed ? <CheckCircle2 className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}</button>
-            <p className="mt-4 text-center text-[11px] leading-5 text-[#93b19b]">We’ll confirm final pricing in person.</p>
+            <p className="mt-4 text-center text-[11px] leading-5 text-[#93b19b]">{bookingConfirmed ? "Your final invoice opened in a new tab." : "We’ll confirm final pricing in person."}</p>
           </aside>
         </div>
 
