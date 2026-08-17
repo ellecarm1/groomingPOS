@@ -17,6 +17,7 @@ import {
   UserRound,
 } from "lucide-react";
 
+import { BookingPanel } from "@/pages/Booking";
 import { InvoicePreview } from "@/components/InvoicePreview";
 import { cn } from "@/lib/utils";
 import {
@@ -91,11 +92,6 @@ export default function Index() {
       }
       return { ...current, [id]: nextQuantity };
     });
-  };
-
-  const openBooking = () => {
-    saveEstimate(selected);
-    window.open("/booking", "_blank", "noopener,noreferrer");
   };
 
   const printInvoice = () => {
@@ -261,21 +257,8 @@ export default function Index() {
               </p>
             </div>
 
-            <div className="mt-5 flex flex-col gap-5 rounded-[22px] border border-[#cbdac4] bg-[#e9f0e3] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-              <div>
-                <p className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-[#6f905f]">Step 02 · Find a time</p>
-                <h3 className="mt-1 font-display text-xl font-bold tracking-[-0.04em] text-[#234438]">Ready to book their visit?</h3>
-                <p className="mt-1.5 text-xs leading-5 text-[#6b7d6a]">No payment needed today · change or cancel anytime</p>
-              </div>
-              <button
-                type="button"
-                disabled={selectedServices.length === 0}
-                onClick={openBooking}
-                className="flex h-[52px] shrink-0 items-center justify-center gap-2 rounded-2xl bg-[#d2765d] px-5 py-3.5 text-sm font-extrabold text-white shadow-[0_12px_22px_-14px_rgba(210,118,93,0.9)] transition hover:bg-[#c66850] disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Continue to booking
-                <ArrowRight className="h-4 w-4" />
-              </button>
+            <div className="mt-10 border-t border-[#dfe1d8] pt-10">
+              <BookingPanel selected={selected} services={services} stepLabel="Step 02 · Find a time" />
             </div>
           </div>
 
@@ -286,7 +269,7 @@ export default function Index() {
               <div className="relative p-6 sm:p-7 lg:p-8">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[#a7c39b]">Step 02</p>
+                    <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[#a7c39b]">Estimate</p>
                     <h2 className="mt-1 font-display text-2xl font-bold tracking-[-0.045em]">Your estimate</h2>
                   </div>
                   <div className="grid h-10 w-10 place-items-center rounded-full bg-[#d2765d] text-[#fff5ed]">
