@@ -25,6 +25,7 @@ export type Booking = {
 const SERVICES_KEY = "good-groomed-services-v1";
 const ESTIMATE_KEY = "good-groomed-estimate-v1";
 const BOOKING_KEY = "good-groomed-booking-v1";
+const BOOKINGS_KEY = "good-groomed-bookings-v1";
 export const SERVICES_UPDATED_EVENT = "good-groomed-services-updated";
 
 export const DEFAULT_SERVICES: Service[] = [
@@ -110,7 +111,26 @@ export function getEstimate(): SelectedServices {
 }
 
 export function saveBooking(booking: Booking) {
+  const bookings = getBookings().filter(
+    (existing) => existing.dateKey !== booking.dateKey || existing.time !== booking.time,
+  );
+  window.localStorage.setItem(BOOKINGS_KEY, JSON.stringify([...bookings, booking]));
   window.localStorage.setItem(BOOKING_KEY, JSON.stringify(booking));
+}
+
+export function getBookings(): Booking[] {
+  if (typeof window === "undefined") return [];
+  const stored = window.localStorage.getItem(BOOKINGS_KEY);
+  if (!stored) {
+    const previousBooking = getBooking();
+    return previousBooking ? [previousBooking] : [];
+  }
+  try {
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? (parsed as Booking[]) : [];
+  } catch {
+    return [];
+  }
 }
 
 export function getBooking(): Booking | null {

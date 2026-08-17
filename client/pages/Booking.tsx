@@ -17,6 +17,7 @@ import { InvoicePreview } from "@/components/InvoicePreview";
 import {
   formatCurrency,
   formatDuration,
+  getBookings,
   getEstimate,
   getSelectedDuration,
   getServices,
@@ -26,31 +27,32 @@ import {
   type SelectedServices,
 } from "@/lib/catalog";
 
-const startOfCalendar = new Date(2024, 3, 22);
-const dates = Array.from({ length: 10 }, (_, index) => {
-  const date = new Date(startOfCalendar);
-  date.setDate(startOfCalendar.getDate() + index);
+const CALENDAR_DAYS = 14;
+
+function dateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function createCalendarDates() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Array.from({ length: CALENDAR_DAYS }, (_, index) => {
+  const date = new Date(today);
+  date.setDate(today.getDate() + index);
   return {
-    key: date.toISOString().slice(0, 10),
+    key: dateKey(date),
     day: date.toLocaleDateString("en-US", { weekday: "short" }),
     date: date.getDate(),
     month: date.toLocaleDateString("en-US", { month: "short" }),
     label: date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }),
   };
-});
+  });
+}
 
 const timeSlots = ["9:00 AM", "10:30 AM", "12:00 PM", "1:30 PM", "3:00 PM", "4:30 PM"];
-const bookedAppointments: Record<string, { time: string; durationMinutes: number }[]> = {
-  "2024-04-22": [{ time: "10:30 AM", durationMinutes: 120 }],
-  "2024-04-23": [
-    { time: "12:00 PM", durationMinutes: 90 },
-    { time: "3:00 PM", durationMinutes: 120 },
-  ],
-  "2024-04-24": [{ time: "9:00 AM", durationMinutes: 60 }],
-  "2024-04-25": [{ time: "1:30 PM", durationMinutes: 90 }],
-  "2024-04-27": [{ time: "10:30 AM", durationMinutes: 180 }],
-};
-
 const toMinutes = (time: string) => {
   const [hourPart, minutePart] = time.replace(" AM", "").replace(" PM", "").split(":");
   const isPm = time.includes("PM");
@@ -62,11 +64,11 @@ const toMinutes = (time: string) => {
 
 const endOfDay = 18 * 60;
 
-function isSlotAvailable(dateKey: string, time: string, durationMinutes: number) {
+function isSlotAvailable(dateKey: string, time: string, durationMinutes: number, bookings: BookingData[]) {
   const start = toMinutes(time);
   const end = start + durationMinutes;
   if (end > endOfDay) return false;
-  return !(bookedAppointments[dateKey] || []).some((appointment) => {
+  return !bookings.filter((booking) => booking.dateKey === dateKey).some((appointment) => {
     const bookedStart = toMinutes(appointment.time);
     const bookedEnd = bookedStart + appointment.durationMinutes;
     return start < bookedEnd && end > bookedStart;
@@ -74,6 +76,7 @@ function isSlotAvailable(dateKey: string, time: string, durationMinutes: number)
 }
 
 export default function Booking() {
+  const dates = useMemo(createCalendarDates, []);
   const services = useMemo(() => getServices(), []);
   const selected = useMemo(() => getEstimate(), []);
   const selectedServices = services.filter((service) => selected[service.id]);
@@ -82,10 +85,11 @@ export default function Booking() {
     (total, service) => total + service.price * selected[service.id],
     0,
   );
-  const [selectedDate, setSelectedDate] = useState(dates[1].key);
+  const [selectedDate, setSelectedDate] = useState(dates[0].key);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
-  const activeDate = dates.find((date) => date.key === selectedDate) || dates[1];
+  const [bookings, setBookings] = useState<BookingData[]>(getBookings);
+  const activeDate = dates.find((date) => date.key === selectedDate) || dates[0];
   const previewBooking: BookingData | null = selectedTime ? {
     dateKey: selectedDate,
     dateLabel: activeDate.label,
@@ -106,8 +110,9 @@ export default function Booking() {
   };
 
   const confirmBooking = () => {
-    if (!previewBooking) return;
+    if (!previewBooking || !selectedServices.length) return;
     saveBooking(previewBooking);
+    setBookings(getBookings());
     setBookingConfirmed(true);
     window.open("/invoice?autoprint=1", "_blank", "noopener,noreferrer");
   };
@@ -141,7 +146,7 @@ export default function Booking() {
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
           <section className="rounded-[28px] border border-[#e1e2da] bg-[#fbfaf7] p-5 shadow-[0_18px_50px_-35px_rgba(39,74,56,0.4)] sm:p-7">
             <div className="flex items-center justify-between gap-4">
-              <div><p className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-[#89938a]">Good availability</p><h2 className="mt-1 font-display text-2xl font-bold tracking-[-0.045em] text-[#234438]">April 2024</h2></div>
+              <div><p className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-[#89938a]">Good availability</p><h2 className="mt-1 font-display text-2xl font-bold tracking-[-0.045em] text-[#234438]">Next two weeks</h2></div>
               <div className="grid h-10 w-10 place-items-center rounded-full bg-[#f2ead6] text-[#927337]"><CalendarDays className="h-4 w-4" /></div>
             </div>
 
@@ -155,7 +160,7 @@ export default function Booking() {
             <div className="mt-9 flex items-end justify-between gap-3 border-b border-[#e7e8e1] pb-4"><div><p className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-[#89938a]">Available start times</p><h3 className="mt-1 font-display text-xl font-bold tracking-[-0.04em] text-[#234438]">{activeDate.label}</h3></div><span className="text-right text-[11px] font-semibold text-[#a0a99f]">Studio hours<br />9:00 AM – 6:00 PM</span></div>
             <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
               {timeSlots.map((time) => {
-                const available = isSlotAvailable(selectedDate, time, durationMinutes);
+                const available = isSlotAvailable(selectedDate, time, durationMinutes, bookings);
                 const active = selectedTime === time;
                 return <button key={time} type="button" disabled={!available} onClick={() => chooseTime(time)} className={`group flex items-center justify-between rounded-2xl border px-4 py-4 text-left transition ${active ? "border-[#234438] bg-[#234438] text-white" : available ? "border-[#e1e2da] bg-white text-[#315244] hover:border-[#9dbb91] hover:bg-[#f1f5ec]" : "cursor-not-allowed border-[#ededeb] bg-[#f0f0ec] text-[#b8bdb6]"}`}><span className="text-sm font-extrabold">{time}</span>{available ? <span className={`grid h-6 w-6 place-items-center rounded-full ${active ? "bg-[#d2765d] text-white" : "bg-[#e6eedf] text-[#6f905f]"}`}><Check className="h-3.5 w-3.5" /></span> : <LockKeyhole className="h-3.5 w-3.5" />}</button>;
               })}
@@ -171,7 +176,7 @@ export default function Booking() {
             <div className="my-6 h-px bg-[#527060]" />
             <div className="flex items-end justify-between"><div><p className="text-xs font-semibold text-[#a7c0ad]">Estimated total</p><p className="mt-1 font-display text-4xl font-bold tracking-[-0.06em] text-white">{formatCurrency(subtotal)}</p></div><p className="pb-1 text-xs font-semibold text-[#a7c0ad]">before tax</p></div>
             <div className="mt-6 rounded-2xl bg-[#2c5140] px-4 py-3 text-xs leading-5 text-[#bcd0ba]"><span className="font-extrabold text-[#f8f4e8]">{activeDate.label}</span>{selectedTime ? <><br />Arrive at <span className="font-extrabold text-[#f8f4e8]">{selectedTime}</span></> : <><br />Choose a start time to continue.</>}</div>
-            <button type="button" disabled={!previewBooking || bookingConfirmed} onClick={confirmBooking} className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#d2765d] px-5 py-3.5 text-sm font-extrabold text-white transition hover:bg-[#c66850] disabled:cursor-not-allowed disabled:opacity-50">{bookingConfirmed ? "Appointment confirmed" : "Confirm appointment"} {bookingConfirmed ? <CheckCircle2 className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}</button>
+            <button type="button" disabled={!previewBooking || !selectedServices.length || bookingConfirmed} onClick={confirmBooking} className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#d2765d] px-5 py-3.5 text-sm font-extrabold text-white transition hover:bg-[#c66850] disabled:cursor-not-allowed disabled:opacity-50">{bookingConfirmed ? "Appointment confirmed" : "Confirm appointment"} {bookingConfirmed ? <CheckCircle2 className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}</button>
             <p className="mt-4 text-center text-[11px] leading-5 text-[#93b19b]">{bookingConfirmed ? "Your final invoice opened in a new tab." : "We’ll confirm final pricing in person."}</p>
           </aside>
         </div>

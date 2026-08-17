@@ -34,6 +34,11 @@ const iconMap = {
 };
 
 export default function Index() {
+  const nextAvailableDate = useMemo(() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 1);
+    return date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+  }, []);
   const [selected, setSelected] = useState<Record<string, number>>(() => {
     const saved = getEstimate();
     return Object.keys(saved).length ? saved : { "full-groom": 1 };
@@ -303,7 +308,7 @@ export default function Index() {
                   <CalendarDays className="h-4 w-4 shrink-0 text-[#f0b19d]" />
                   <div>
                     <p className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#9fbea0]">Next available</p>
-                    <p className="mt-0.5 text-sm font-bold text-[#f8f4e8]">Tuesday, April 23</p>
+                    <p className="mt-0.5 text-sm font-bold text-[#f8f4e8]">{nextAvailableDate}</p>
                   </div>
                   <ArrowRight className="ml-auto h-4 w-4 text-[#a7c39b]" />
                 </div>

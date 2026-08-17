@@ -115,6 +115,78 @@
   .font-display {
     font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   }
+
+  .neon-mode {
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at 12% 8%, rgba(0, 247, 255, 0.2), transparent 28rem),
+      radial-gradient(circle at 90% 16%, rgba(255, 47, 183, 0.18), transparent 25rem),
+      radial-gradient(circle at 52% 100%, rgba(119, 79, 255, 0.2), transparent 32rem),
+      #05030d;
+  }
+
+  .neon-mode main {
+    background: transparent !important;
+    color: #edf8ff !important;
+  }
+
+  .neon-mode [class*="bg-[#fbfaf7]"],
+  .neon-mode [class*="bg-[#f5f3ed]"],
+  .neon-mode [class*="bg-white"],
+  .neon-mode [class*="bg-[#f1f5ec]"] {
+    background: linear-gradient(145deg, rgba(20, 16, 49, 0.94), rgba(8, 8, 29, 0.94)) !important;
+  }
+
+  .neon-mode [class*="bg-[#234438]"],
+  .neon-mode [class*="bg-[#2c5140]"] {
+    background: linear-gradient(145deg, #160d31, #090718) !important;
+  }
+
+  .neon-mode [class*="bg-[#d2765d]"] {
+    background: linear-gradient(135deg, #ff2aaf, #a536ff) !important;
+    box-shadow: 0 0 22px rgba(255, 42, 175, 0.45);
+  }
+
+  .neon-mode [class*="bg-[#7d9e72]"] {
+    background: linear-gradient(135deg, #00e5ff, #5d5cff) !important;
+    box-shadow: 0 0 18px rgba(0, 229, 255, 0.4);
+  }
+
+  .neon-mode [class*="border-[#"],
+  .neon-mode [class*="border-white"] {
+    border-color: rgba(82, 238, 255, 0.28) !important;
+  }
+
+  .neon-mode [class*="text-[#234438]"],
+  .neon-mode [class*="text-[#1e352c]"],
+  .neon-mode [class*="text-[#315244]"] {
+    color: #f1fbff !important;
+  }
+
+  .neon-mode [class*="text-[#6"],
+  .neon-mode [class*="text-[#7"],
+  .neon-mode [class*="text-[#8"],
+  .neon-mode [class*="text-[#9"],
+  .neon-mode [class*="text-[#a"] {
+    color: #b6c8df !important;
+  }
+
+  .neon-mode [class*="rounded-"][class*="border"] {
+    box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.08), 0 18px 48px rgba(0, 0, 0, 0.3);
+  }
+
+  .neon-mode-toggle {
+    border-color: #00e5ff;
+    background: rgba(9, 7, 27, 0.9);
+    color: #eafbff;
+    box-shadow: 0 0 22px rgba(0, 229, 255, 0.35);
+    backdrop-filter: blur(12px);
+  }
+
+  .neon-mode-toggle:hover {
+    border-color: #ff2aaf;
+    box-shadow: 0 0 25px rgba(255, 42, 175, 0.48);
+  }
 }
 
 @media print {
@@ -152,5 +224,9 @@
 
   .print-controls {
     display: none !important;
+  }
+
+  .neon-mode {
+    background: #fff !important;
   }
 }
