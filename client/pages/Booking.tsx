@@ -18,6 +18,7 @@ import {
 import {
   formatCurrency,
   formatDuration,
+  getBookings,
   getEstimate,
   getPetParentMembers,
   getSelectedDuration,
@@ -67,10 +68,17 @@ const buildWeek = (weekStart: Date) => Array.from({ length: 7 }, (_, index) => {
 
 const getBookedAppointments = (dateKey: string) => {
   const day = parseDateKey(dateKey).getDay();
-  if (day === 2) return [{ time: "12:00 PM", durationMinutes: 90 }, { time: "3:00 PM", durationMinutes: 120 }];
-  if (day === 4) return [{ time: "1:30 PM", durationMinutes: 90 }];
-  if (day === 6) return [{ time: "10:30 AM", durationMinutes: 180 }];
-  return [];
+  const demoAppointments = day === 2
+    ? [{ time: "12:00 PM", durationMinutes: 90 }, { time: "3:00 PM", durationMinutes: 120 }]
+    : day === 4
+      ? [{ time: "1:30 PM", durationMinutes: 90 }]
+      : day === 6
+        ? [{ time: "10:30 AM", durationMinutes: 180 }]
+        : [];
+  const savedAppointments = getBookings()
+    .filter((appointment) => appointment.dateKey === dateKey)
+    .map((appointment) => ({ time: appointment.time, durationMinutes: appointment.durationMinutes }));
+  return [...demoAppointments, ...savedAppointments];
 };
 
 const toMinutes = (time: string) => {

@@ -27,12 +27,18 @@ export type PetParentDetails = {
 };
 
 export type Booking = {
+  id?: string;
   dateKey: string;
   dateLabel: string;
   time: string;
   durationMinutes: number;
   selected: SelectedServices;
   petParent?: PetParentDetails;
+};
+
+export type Appointment = Booking & {
+  id: string;
+  createdAt: number;
 };
 
 export type PetParentMember = {
@@ -44,10 +50,30 @@ export type PetParentMember = {
   pets: { name: string; breed: string }[];
 };
 
+export type StudioUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: "admin" | "employee";
+};
+
+type StoredUser = StudioUser & { password: string };
+
+export const DEFAULT_ADMIN_USER: StudioUser = {
+  id: "admin-elle",
+  name: "Elle",
+  email: "ellecarmean@gmail.com",
+  role: "admin",
+};
+
+const ADMIN_PASSWORD = "Kevineleven!3";
 const SERVICES_KEY = "good-groomed-services-v1";
 const ESTIMATE_KEY = "good-groomed-estimate-v1";
 const BOOKING_KEY = "good-groomed-booking-v1";
+const APPOINTMENTS_KEY = "good-groomed-appointments-v1";
 const PET_PARENT_MEMBERS_KEY = "good-groomed-pet-parent-members-v1";
+const EMPLOYEES_KEY = "good-groomed-employees-v1";
+const SESSION_KEY = "good-groomed-admin-session";
 export const SERVICES_UPDATED_EVENT = "good-groomed-services-updated";
 
 export const DEFAULT_SERVICES: Service[] = [
@@ -133,18 +159,59 @@ export function getEstimate(): SelectedServices {
 }
 
 export function saveBooking(booking: Booking) {
-  window.localStorage.setItem(BOOKING_KEY, JSON.stringify(booking));
+  const appointment: Appointment = {
+    ...booking,
+    id: booking.id || `appointment-${Date.now()}`,
+    createdAt: Date.now(),
+  };
+  const appointments = getBookings().filter((item) => item.id !== appointment.id);
+  window.localStorage.setItem(APPOINTMENTS_KEY, JSON.stringify([...appointments, appointment]));
+  window.localStorage.setItem(BOOKING_KEY, JSON.stringify(appointment));
+}
+
+export function getBookings(): Appointment[] {
+  if (typeof window === "undefined") return [];
+  const stored = window.localStorage.getItem(APPOINTMENTS_KEY);
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) return parsed as Appointment[];
+    } catch {
+      return [];
+    }
+  }
+  const legacy = window.localStorage.getItem(BOOKING_KEY);
+  if (!legacy) return [];
+  try {
+    const booking = JSON.parse(legacy) as Booking;
+    return [{ ...booking, id: booking.id || "legacy-appointment", createdAt: Date.now() }];
+  } catch {
+    return [];
+  }
+}
+
+export function deleteBooking(id: string) {
+  const remaining = getBookings().filter((appointment) => appointment.id !== id);
+  if (remaining.length) {
+    window.localStorage.setItem(APPOINTMENTS_KEY, JSON.stringify(remaining));
+    window.localStorage.setItem(BOOKING_KEY, JSON.stringify(remaining[remaining.length - 1]));
+  } else {
+    window.localStorage.removeItem(APPOINTMENTS_KEY);
+    window.localStorage.removeItem(BOOKING_KEY);
+  }
 }
 
 export function getBooking(): Booking | null {
-  if (typeof window === "undefined") return null;
-  const stored = window.localStorage.getItem(BOOKING_KEY);
-  if (!stored) return null;
-  try {
-    return JSON.parse(stored) as Booking;
-  } catch {
-    return null;
-  }
+  const appointments = getBookings();
+  return appointments.length ? appointments[appointments.length - 1] : null;
+}
+
+export function savePetParentMembers(members: PetParentMember[]) {
+  window.localStorage.setItem(PET_PARENT_MEMBERS_KEY, JSON.stringify(members));
+}
+
+export function deletePetParentMember(id: string) {
+  savePetParentMembers(getPetParentMembers().filter((member) => member.id !== id));
 }
 
 export function getPetParentMembers(): PetParentMember[] {
@@ -184,6 +251,60 @@ export function savePetParentMember(details: Pick<PetParentDetails, "firstName" 
   const nextMembers = existing ? members.map((member) => member.id === existing.id ? nextMember : member) : [...members, nextMember];
   window.localStorage.setItem(PET_PARENT_MEMBERS_KEY, JSON.stringify(nextMembers));
   return nextMember;
+}
+
+function getStoredUsers(): StoredUser[] {
+  if (typeof window === "undefined") return [];
+  const stored = window.localStorage.getItem(EMPLOYEES_KEY);
+  let employees: StoredUser[] = [];
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      employees = Array.isArray(parsed) ? (parsed as StoredUser[]) : [];
+    } catch {
+      employees = [];
+    }
+  }
+  return [{ ...DEFAULT_ADMIN_USER, password: ADMIN_PASSWORD }, ...employees];
+}
+
+export function authenticateUser(email: string, password: string): StudioUser | null {
+  const user = getStoredUsers().find((candidate) => candidate.email.toLowerCase() === email.trim().toLowerCase() && candidate.password === password);
+  if (!user) return null;
+  const { password: _password, ...safeUser } = user;
+  return safeUser;
+}
+
+export function saveEmployee(employee: { name: string; email: string; password: string }) {
+  const employees = getStoredUsers().filter((user) => user.role === "employee");
+  const nextEmployee: StoredUser = { ...employee, id: `employee-${Date.now()}`, role: "employee" };
+  const next = [...employees.filter((user) => user.email.toLowerCase() !== employee.email.trim().toLowerCase()), nextEmployee];
+  window.localStorage.setItem(EMPLOYEES_KEY, JSON.stringify(next));
+  return nextEmployee;
+}
+
+export function getEmployees(): StudioUser[] {
+  return getStoredUsers().filter((user) => user.role === "employee").map(({ password: _password, ...user }) => user);
+}
+
+export function getCurrentUser(): StudioUser | null {
+  if (typeof window === "undefined") return null;
+  const stored = window.localStorage.getItem(SESSION_KEY);
+  if (stored === "true") return DEFAULT_ADMIN_USER;
+  if (!stored) return null;
+  try {
+    return JSON.parse(stored) as StudioUser;
+  } catch {
+    return null;
+  }
+}
+
+export function saveCurrentUser(user: StudioUser) {
+  window.localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+}
+
+export function clearCurrentUser() {
+  window.localStorage.removeItem(SESSION_KEY);
 }
 
 export function getSelectedDuration(selected: SelectedServices, services: Service[]) {
