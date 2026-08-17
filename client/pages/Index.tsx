@@ -52,7 +52,7 @@ export default function Index() {
     if (!showIntro) return;
     window.localStorage.setItem(HOMEPAGE_INTRO_KEY, "true");
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const timeoutId = window.setTimeout(() => setShowIntro(false), reducedMotion ? 300 : 2750);
+    const timeoutId = window.setTimeout(() => setShowIntro(false), reducedMotion ? 300 : 2850);
     return () => window.clearTimeout(timeoutId);
   }, [showIntro]);
 
