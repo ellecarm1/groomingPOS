@@ -260,6 +260,23 @@ export default function Index() {
                 confirm the final total with you before we begin.
               </p>
             </div>
+
+            <div className="mt-5 flex flex-col gap-5 rounded-[22px] border border-[#cbdac4] bg-[#e9f0e3] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+              <div>
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-[#6f905f]">Step 02 · Find a time</p>
+                <h3 className="mt-1 font-display text-xl font-bold tracking-[-0.04em] text-[#234438]">Ready to book their visit?</h3>
+                <p className="mt-1.5 text-xs leading-5 text-[#6b7d6a]">No payment needed today · change or cancel anytime</p>
+              </div>
+              <button
+                type="button"
+                disabled={selectedServices.length === 0}
+                onClick={openBooking}
+                className="flex h-[52px] shrink-0 items-center justify-center gap-2 rounded-2xl bg-[#d2765d] px-5 py-3.5 text-sm font-extrabold text-white shadow-[0_12px_22px_-14px_rgba(210,118,93,0.9)] transition hover:bg-[#c66850] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Continue to booking
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
 
           <aside className="relative lg:pt-10">
@@ -315,16 +332,6 @@ export default function Index() {
                   <ArrowRight className="ml-auto h-4 w-4 text-[#a7c39b]" />
                 </div>
 
-                <button
-                  type="button"
-                  disabled={selectedServices.length === 0}
-                  onClick={openBooking}
-                  className="mt-5 flex h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-[#d2765d] px-5 py-3.5 text-sm font-extrabold text-white shadow-[0_12px_22px_-14px_rgba(210,118,93,0.9)] transition hover:bg-[#c66850] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Continue to booking
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-                <p className="mt-4 text-center text-[11px] leading-5 text-[#93b19b]">No payment needed today · change or cancel anytime</p>
               </div>
             </div>
           </aside>
