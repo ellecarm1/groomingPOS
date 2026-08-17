@@ -30,7 +30,7 @@ import {
   type SelectedServices,
 } from "@/lib/catalog";
 
-const timeSlots = ["9:00 AM", "10:30 AM", "12:00 PM", "1:30 PM", "3:00 PM", "4:30 PM"];
+export const timeSlots = ["9:00 AM", "10:30 AM", "12:00 PM", "1:30 PM", "3:00 PM", "4:30 PM"];
 const endOfDay = 18 * 60;
 
 const pad = (value: number) => String(value).padStart(2, "0");
@@ -89,7 +89,7 @@ const toMinutes = (time: string) => {
   return hour * 60 + Number(minutePart);
 };
 
-function isSlotAvailable(dateKey: string, time: string, durationMinutes: number) {
+export function isSlotAvailable(dateKey: string, time: string, durationMinutes: number) {
   const start = toMinutes(time);
   const end = start + durationMinutes;
   if (end > endOfDay) return false;

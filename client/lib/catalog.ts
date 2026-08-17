@@ -45,6 +45,7 @@ export type PetParentMember = {
   id: string;
   firstName: string;
   lastName: string;
+  phone: string;
   city: string;
   state: string;
   pets: { name: string; breed: string }[];
@@ -57,7 +58,9 @@ export type StudioUser = {
   role: "admin" | "employee";
 };
 
-type StoredUser = StudioUser & { password: string };
+export type EmployeeCredentials = StudioUser & { password: string };
+
+type StoredUser = EmployeeCredentials;
 
 export const DEFAULT_ADMIN_USER: StudioUser = {
   id: "admin-elle",
@@ -220,13 +223,19 @@ export function getPetParentMembers(): PetParentMember[] {
   if (!stored) return [];
   try {
     const parsed = JSON.parse(stored);
-    return Array.isArray(parsed) ? (parsed as PetParentMember[]) : [];
+    return Array.isArray(parsed)
+      ? (parsed as Partial<PetParentMember>[]).map((member) => ({
+          ...member,
+          phone: member.phone || "",
+          pets: Array.isArray(member.pets) ? member.pets : [],
+        })) as PetParentMember[]
+      : [];
   } catch {
     return [];
   }
 }
 
-export function savePetParentMember(details: Pick<PetParentDetails, "firstName" | "lastName" | "city" | "state" | "petName" | "petBreed">) {
+export function savePetParentMember(details: Pick<PetParentDetails, "firstName" | "lastName" | "city" | "state" | "petName" | "petBreed"> & { phone?: string }) {
   const members = getPetParentMembers();
   const normalizedName = `${details.firstName} ${details.lastName}`.trim().toLowerCase();
   const existing = members.find((member) => `${member.firstName} ${member.lastName}`.trim().toLowerCase() === normalizedName);
@@ -234,6 +243,7 @@ export function savePetParentMember(details: Pick<PetParentDetails, "firstName" 
   const nextMember: PetParentMember = existing
     ? {
         ...existing,
+        phone: details.phone?.trim() || existing.phone,
         city: details.city.trim(),
         state: details.state.trim(),
         pets: existing.pets.some((savedPet) => savedPet.name.toLowerCase() === pet.name.toLowerCase())
@@ -244,6 +254,7 @@ export function savePetParentMember(details: Pick<PetParentDetails, "firstName" 
         id: `member-${Date.now()}`,
         firstName: details.firstName.trim(),
         lastName: details.lastName.trim(),
+        phone: details.phone?.trim() || "",
         city: details.city.trim(),
         state: details.state.trim(),
         pets: [pet],
@@ -285,6 +296,10 @@ export function saveEmployee(employee: { name: string; email: string; password: 
 
 export function getEmployees(): StudioUser[] {
   return getStoredUsers().filter((user) => user.role === "employee").map(({ password: _password, ...user }) => user);
+}
+
+export function getEmployeeCredentials(): EmployeeCredentials[] {
+  return getStoredUsers().filter((user) => user.role === "employee");
 }
 
 export function getCurrentUser(): StudioUser | null {
