@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 
 import {
-  formatCurrency,
   formatDuration,
   getBookings,
   getEstimate,
@@ -129,9 +128,7 @@ export function BookingPanel({
   const defaultSelected = useMemo(() => getEstimate(), []);
   const services = servicesProp || defaultServices;
   const selected = selectedProp || defaultSelected;
-  const selectedServices = services.filter((service) => selected[service.id]);
   const durationMinutes = getSelectedDuration(selected, services);
-  const subtotal = selectedServices.reduce((total, service) => total + service.price * selected[service.id], 0);
   const today = useMemo(() => new Date(), []);
   const minimumWeek = useMemo(() => startOfWeek(today), [today]);
   const [selectedDate, setSelectedDate] = useState(formatDateKey(today));
@@ -230,7 +227,7 @@ export function BookingPanel({
   };
 
   return (
-    <div className="mx-auto max-w-[1080px]">
+    <div className="w-full">
       <section className="relative rounded-[28px] border border-[#e1e2da] bg-[#fbfaf7] p-5 shadow-[0_18px_50px_-35px_rgba(39,74,56,0.4)] sm:p-7" aria-labelledby="pet-parent-heading">
         <div className="mb-6 flex flex-col items-center justify-center gap-4 text-center sm:min-h-[104px] sm:flex-row sm:items-start">
           <div className="max-w-[570px]">
@@ -282,7 +279,7 @@ export function BookingPanel({
         <div className="w-full"><p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[#d2765d]">{stepLabel}</p><h2 className="mt-2 font-display text-[clamp(2.4rem,5vw,4.4rem)] font-bold leading-[0.95] tracking-[-0.07em] text-[#234438]">Find a good time.</h2><p className="mx-auto mt-4 max-w-[520px] text-sm leading-6 text-[#6b776e]">We’ll hold enough time for every service in your estimate. Greyed-out times overlap another appointment or run past closing.</p></div><div className="flex shrink-0 items-center gap-2 rounded-full bg-[#e6eedf] px-4 py-2.5 text-xs font-extrabold text-[#5c7848]"><Clock3 className="h-3.5 w-3.5" /> {formatDuration(durationMinutes)} reserved</div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div>
         <section className="relative rounded-[28px] border border-[#e1e2da] bg-[#fbfaf7] p-5 shadow-[0_18px_50px_-35px_rgba(39,74,56,0.4)] sm:p-7">
           <div className="flex items-center justify-between gap-4"><div className="text-left"><p className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-[#89938a]">Good availability</p><h3 className="mt-1 font-display text-2xl font-bold tracking-[-0.045em] text-[#234438]">Select a week</h3></div><button type="button" aria-label="Open calendar" aria-haspopup="dialog" aria-expanded={calendarOpen} onClick={() => setCalendarOpen((current) => !current)} className="grid h-10 w-10 place-items-center rounded-full bg-[#f2ead6] text-[#927337] transition hover:bg-[#eadcb9]"><CalendarDays className="h-4 w-4" /></button></div>
           {calendarOpen && <div role="dialog" aria-label="Choose appointment date" className="absolute right-5 top-[76px] z-30 w-[min(92vw,390px)] rounded-2xl border border-[#dce8d6] bg-white p-4 text-[#315244] shadow-[0_22px_55px_-22px_rgba(39,74,56,0.5)] sm:right-7"><div className="flex items-center justify-between"><button type="button" aria-label="Previous week" disabled={weekStart.getTime() <= minimumWeek.getTime()} onClick={() => moveWeek(-1)} className="grid h-8 w-8 place-items-center rounded-lg border border-[#e1e8dc] text-[#55734d] disabled:cursor-not-allowed disabled:opacity-30"><ChevronLeft className="h-4 w-4" /></button><div className="text-center"><p className="text-[10px] font-extrabold uppercase tracking-[0.13em] text-[#89938a]">Week of</p><p className="mt-0.5 text-sm font-extrabold text-[#315244]">{formatShortDate(weekDates[0].key)} – {formatShortDate(weekDates[6].key)}</p></div><button type="button" aria-label="Next week" onClick={() => moveWeek(1)} className="grid h-8 w-8 place-items-center rounded-lg border border-[#e1e8dc] text-[#55734d]"><ChevronRight className="h-4 w-4" /></button></div><div className="mt-4 grid grid-cols-7 gap-1.5">{weekDates.map((date) => <button key={date.key} type="button" disabled={isPastDate(date.key)} onClick={() => chooseDate(date.key)} className={`rounded-xl px-1 py-2 text-center transition ${isPastDate(date.key) ? "cursor-not-allowed bg-[#f6f6f2] text-[#c4c9c1]" : date.key === selectedDate ? "bg-[#7d9e72] text-white" : "bg-[#f1f5ec] text-[#55734d] hover:bg-[#e6eedf]"}`}><span className="block text-[9px] font-extrabold uppercase">{date.day}</span><span className="mt-1 block text-sm font-bold">{date.date}</span></button>)}</div><button type="button" onClick={() => setCalendarOpen(false)} className="mt-4 flex w-full items-center justify-center gap-2 text-[11px] font-extrabold text-[#789073]"><X className="h-3.5 w-3.5" /> Close calendar</button></div>}
@@ -293,7 +290,6 @@ export function BookingPanel({
           <div className="mt-6 flex flex-wrap justify-center gap-4 text-[11px] font-bold text-[#89938a]"><span className="inline-flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-[#7d9e72]" /> Available</span><span className="inline-flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-[#d4d6d0]" /> Already booked</span><span className="inline-flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-[#234438]" /> Your selection</span></div>
         </section>
 
-        <aside className="h-fit rounded-[28px] bg-[#234438] p-6 text-[#f8f4e8] shadow-[0_30px_70px_-32px_rgba(20,48,38,0.85)] sm:p-7 lg:sticky lg:top-6"><p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[#a7c39b]">Your visit</p><h3 className="mt-1 font-display text-2xl font-bold tracking-[-0.045em]">Almost there.</h3><div className="my-6 h-px bg-[#527060]" /><div className="space-y-3">{selectedServices.map((service: Service) => <div key={service.id} className="flex items-start justify-between gap-3 text-sm"><span className="text-[#d4e0d0]">{selected[service.id]} × {service.name}</span><span className="font-semibold">{formatCurrency(service.price * selected[service.id])}</span></div>)}</div><div className="my-6 h-px bg-[#527060]" /><div className="flex items-end justify-between"><div><p className="text-xs font-semibold text-[#a7c0ad]">Estimated total</p><p className="mt-1 font-display text-4xl font-bold tracking-[-0.06em] text-white">{formatCurrency(subtotal)}</p></div><p className="pb-1 text-xs font-semibold text-[#a7c0ad]">before tax</p></div><div className="mt-6 rounded-2xl bg-[#2c5140] px-4 py-3 text-xs leading-5 text-[#bcd0ba]"><span className="font-extrabold text-[#f8f4e8]">{activeDate.label}</span>{selectedTime ? <><br />Arrive at <span className="font-extrabold text-[#f8f4e8]">{selectedTime}</span></> : <><br />Choose a start time to continue.</>}</div></aside>
       </div>
 
       <div className="mt-6 rounded-[22px] border border-[#cbdac4] bg-[#e9f0e3] p-5 text-center sm:p-6"><div className="flex flex-col items-center justify-between gap-4 sm:flex-row sm:text-left"><div><p className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-[#6f905f]">Final step</p><p className="mt-1 font-display text-xl font-bold tracking-[-0.04em] text-[#234438]">Ready to confirm this visit?</p><p className="mt-1.5 text-xs leading-5 text-[#6b7d6a]">Choose a time and complete the Pet Parent section above first.</p></div><button type="button" disabled={!selectedTime || !isPetParentComplete} onClick={confirmBooking} className="flex h-[52px] shrink-0 items-center justify-center gap-2 rounded-2xl bg-[#d2765d] px-6 py-3.5 text-sm font-extrabold text-white shadow-[0_12px_22px_-14px_rgba(210,118,93,0.9)] transition hover:bg-[#c66850] disabled:cursor-not-allowed disabled:opacity-50">Confirm appointment <ArrowRight className="h-4 w-4" /></button></div></div>

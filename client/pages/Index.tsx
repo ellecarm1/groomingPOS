@@ -257,7 +257,7 @@ export default function Index() {
 
         </section>
 
-        <section className="mx-auto w-full max-w-[416px] pb-12 pt-2" aria-labelledby="estimate-heading">
+        <section className="mx-auto w-full max-w-[1080px] pb-12 pt-2" aria-labelledby="estimate-heading">
           <div className="mb-5 text-center">
             <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[#d2765d]">Your visit at a glance</p>
             <h2 id="estimate-heading" className="mt-1 font-display text-2xl font-bold tracking-[-0.045em] text-[#234438]">Your estimate</h2>
