@@ -102,7 +102,7 @@ export default function Index() {
   return (
     <main className="min-h-screen overflow-hidden bg-[#f5f3ed] text-[#1e352c]">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_2%,rgba(221,120,93,0.12),transparent_22rem),radial-gradient(circle_at_5%_78%,rgba(122,151,95,0.12),transparent_25rem)]" />
-      <div className="relative mx-auto max-w-[1440px] px-5 pb-10 sm:px-8 lg:px-12">
+      <div className="relative mx-auto max-w-[1240px] px-5 pb-10 sm:px-8 lg:px-12">
         <header className="flex items-center justify-between border-b border-[#dfe1d8] py-6 lg:py-7">
           <div className="flex items-center gap-3">
             <div className="grid h-10 w-10 place-items-center rounded-[13px] bg-[#234438] text-[#f7f1df] shadow-[0_8px_20px_-12px_rgba(20,48,38,0.8)]">
@@ -130,9 +130,9 @@ export default function Index() {
           </Link>
         </header>
 
-        <section className="grid gap-10 pb-12 pt-12 sm:pt-16 lg:grid-cols-[minmax(0,1fr)_370px] lg:gap-16 lg:pb-16 lg:pt-[72px] xl:grid-cols-[minmax(0,1fr)_416px]">
+        <section className="mx-auto grid max-w-[1180px] gap-10 pb-12 pt-12 sm:pt-16 lg:grid-cols-[minmax(0,1fr)_370px] lg:gap-16 lg:pb-16 lg:pt-[72px] xl:grid-cols-[minmax(0,1fr)_416px]">
           <div>
-            <div className="mb-8 max-w-[700px]">
+            <div className="mx-auto mb-8 max-w-[700px] text-center">
               <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-[#e6eedf] px-3.5 py-2 text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#5c7848]">
                 <Sparkles className="h-3.5 w-3.5" />
                 Your visit, your way
@@ -147,7 +147,7 @@ export default function Index() {
               </p>
             </div>
 
-            <div className="mb-5 flex items-end justify-between gap-4">
+            <div className="mb-5 flex items-end justify-between gap-4 text-center">
               <div>
                 <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[#89938a]">
                   Step 01
