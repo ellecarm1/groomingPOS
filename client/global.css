@@ -187,6 +187,300 @@
     border-color: #ff2aaf;
     box-shadow: 0 0 25px rgba(255, 42, 175, 0.48);
   }
+
+  .grooming-intro {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    pointer-events: none;
+    background: transparent;
+    animation: grooming-intro-exit 260ms ease-out 2.38s forwards;
+  }
+
+  .grooming-intro-panel {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+      radial-gradient(circle at 50% 47%, rgba(227, 244, 213, 0.24), transparent 18rem),
+      linear-gradient(145deg, #18362d, #0a1c20 68%, #1f3b31);
+    transform: translate3d(0, 0, 0);
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    contain: paint;
+  }
+
+  .grooming-intro-panel-top {
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+    animation: grooming-panel-top-exit 900ms cubic-bezier(0.22, 1, 0.36, 1) 1.35s forwards;
+  }
+
+  .grooming-intro-panel-bottom {
+    clip-path: polygon(100% 0, 100% 100%, 0 100%);
+    animation: grooming-panel-bottom-exit 900ms cubic-bezier(0.22, 1, 0.36, 1) 1.35s forwards;
+  }
+
+  .grooming-intro-content {
+    position: relative;
+    z-index: 5;
+    display: grid;
+    justify-items: center;
+    color: #f8f4e8;
+    animation: grooming-intro-reveal 620ms cubic-bezier(0.16, 1, 0.3, 1) 820ms both;
+  }
+
+  .grooming-intro-runner {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 4;
+    animation: grooming-diagonal-cut 920ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+  }
+
+  .grooming-intro-cut {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 3;
+    width: 165vmax;
+    height: 7px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent 2%, rgba(217, 255, 189, 0.92) 32%, #fff 50%, rgba(217, 255, 189, 0.92) 68%, transparent 98%);
+    box-shadow: 0 0 18px rgba(217, 255, 189, 0.9), 0 0 48px rgba(217, 255, 189, 0.45);
+    transform: translate(-50%, -50%) rotate(-34deg) scaleX(0);
+    animation: grooming-cut-stroke 850ms cubic-bezier(0.2, 0.85, 0.25, 1) 180ms both;
+  }
+
+  .grooming-intro-mark {
+    position: relative;
+    display: grid;
+    height: 142px;
+    width: 142px;
+    place-items: center;
+  }
+
+  .grooming-intro-scissors {
+    display: grid;
+    height: 190px;
+    width: 190px;
+    place-items: center;
+    border: 1px solid rgba(231, 245, 221, 0.38);
+    border-radius: 52px;
+    background: rgba(237, 247, 226, 0.1);
+    box-shadow: 0 0 0 16px rgba(201, 230, 187, 0.07), 0 0 64px rgba(202, 246, 175, 0.5);
+    transform: rotate(-34deg) scale(0.75);
+    animation: grooming-scissors-snip 900ms cubic-bezier(0.2, 0.9, 0.25, 1) forwards;
+  }
+
+  .grooming-intro-scissors svg {
+    height: 108px;
+    width: 108px;
+  }
+
+  .grooming-intro-logo-mark {
+    display: grid;
+    height: 48px;
+    width: 48px;
+    place-items: center;
+    border: 1px solid rgba(231, 245, 221, 0.38);
+    border-radius: 15px;
+    background: rgba(237, 247, 226, 0.12);
+    box-shadow: 0 0 24px rgba(202, 246, 175, 0.3);
+  }
+
+  .grooming-intro-logo-mark svg {
+    height: 25px;
+    width: 25px;
+  }
+
+  .grooming-intro-snip {
+    position: absolute;
+    top: 68px;
+    left: 6px;
+    height: 3px;
+    width: 130px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, #d9ffbd, transparent);
+    opacity: 0;
+  }
+
+  .grooming-intro-snip-left {
+    --snip-rotation: 30deg;
+    transform: rotate(var(--snip-rotation)) scaleX(0.2);
+    animation: grooming-snip-line 420ms ease-out 670ms forwards;
+  }
+
+  .grooming-intro-snip-right {
+    --snip-rotation: -30deg;
+    transform: rotate(var(--snip-rotation)) scaleX(0.2);
+    animation: grooming-snip-line 420ms ease-out 710ms forwards;
+  }
+
+  .grooming-intro-spark {
+    position: absolute;
+    color: #e5ffca;
+    opacity: 0;
+  }
+
+  .grooming-intro-spark-one {
+    top: 17px;
+    right: 8px;
+    height: 27px;
+    width: 27px;
+    animation: grooming-spark 500ms ease-out 720ms forwards;
+  }
+
+  .grooming-intro-spark-two {
+    bottom: 10px;
+    left: 3px;
+    height: 18px;
+    width: 18px;
+    animation: grooming-spark 500ms ease-out 790ms forwards;
+  }
+
+  .grooming-intro-name {
+    margin-top: 18px;
+    font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    font-weight: 700;
+    letter-spacing: -0.075em;
+  }
+
+  .grooming-intro-tagline {
+    margin-top: 5px;
+    color: #b8d1b2;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .grooming-intro-glow {
+    position: absolute;
+    height: 28rem;
+    width: 28rem;
+    border-radius: 999px;
+    filter: blur(14px);
+    opacity: 0.32;
+  }
+
+  .grooming-intro-glow-one {
+    top: -12rem;
+    left: -10rem;
+    background: #87cc75;
+    animation: grooming-glow-drift 1.25s ease-out both;
+  }
+
+  .grooming-intro-glow-two {
+    right: -11rem;
+    bottom: -13rem;
+    background: #d2765d;
+    animation: grooming-glow-drift 1.25s ease-out 100ms both reverse;
+  }
+
+  .neon-mode .grooming-intro {
+    background: transparent;
+  }
+
+  .neon-mode .grooming-intro-panel {
+    background:
+      radial-gradient(circle at 50% 47%, rgba(0, 229, 255, 0.3), transparent 18rem),
+      linear-gradient(145deg, #100623, #05030d 70%, #1d0831);
+  }
+
+  .neon-mode .grooming-intro-scissors {
+    border-color: rgba(0, 229, 255, 0.6);
+    color: #e8fbff;
+    box-shadow: 0 0 0 11px rgba(0, 229, 255, 0.08), 0 0 48px rgba(0, 229, 255, 0.55);
+  }
+
+  .neon-mode .grooming-intro-logo-mark {
+    border-color: rgba(0, 229, 255, 0.6);
+    box-shadow: 0 0 26px rgba(0, 229, 255, 0.45);
+  }
+
+  .neon-mode .grooming-intro-cut {
+    background: linear-gradient(90deg, transparent 2%, rgba(0, 229, 255, 0.9) 32%, #fff 50%, rgba(255, 87, 199, 0.9) 68%, transparent 98%);
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.85), 0 0 55px rgba(255, 87, 199, 0.45);
+  }
+
+  .neon-mode .grooming-intro-snip {
+    background: linear-gradient(90deg, transparent, #00e5ff, transparent);
+  }
+
+  .neon-mode .grooming-intro-spark {
+    color: #ff57c7;
+  }
+
+  @keyframes grooming-intro-reveal {
+    from { opacity: 0; transform: translateY(18px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  @keyframes grooming-scissors-snip {
+    0% { transform: rotate(-34deg) scale(0.75); }
+    52% { transform: rotate(10deg) scale(1.08); }
+    72% { transform: rotate(-7deg) scale(0.98); }
+    100% { transform: rotate(0) scale(1); }
+  }
+
+  @keyframes grooming-diagonal-cut {
+    0% { transform: translate(-85vw, 72vh) rotate(-34deg); opacity: 0; }
+    10% { opacity: 1; }
+    84% { opacity: 1; }
+    100% { transform: translate(72vw, -66vh) rotate(-34deg); opacity: 0; }
+  }
+
+  @keyframes grooming-cut-stroke {
+    0% { opacity: 0; transform: translate(-50%, -50%) rotate(-34deg) scaleX(0); }
+    18% { opacity: 1; }
+    72% { opacity: 1; transform: translate(-50%, -50%) rotate(-34deg) scaleX(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) rotate(-34deg) scaleX(1.04); }
+  }
+
+  @keyframes grooming-panel-top-exit {
+    to { transform: translate3d(-105vw, -102vh, 0); }
+  }
+
+  @keyframes grooming-panel-bottom-exit {
+    to { transform: translate3d(105vw, 102vh, 0); }
+  }
+
+  @keyframes grooming-snip-line {
+    0% { opacity: 0; }
+    35% { opacity: 1; transform: rotate(var(--snip-rotation, 0deg)) scaleX(1); }
+    100% { opacity: 0; transform: rotate(var(--snip-rotation, 0deg)) scaleX(1.18); }
+  }
+
+  @keyframes grooming-spark {
+    0% { opacity: 0; transform: scale(0.2) rotate(-20deg); }
+    45% { opacity: 1; transform: scale(1.25) rotate(8deg); }
+    100% { opacity: 0; transform: scale(0.82) rotate(28deg); }
+  }
+
+  @keyframes grooming-glow-drift {
+    from { transform: translate3d(-2rem, 2rem, 0) scale(0.75); opacity: 0; }
+    to { transform: translate3d(2rem, -2rem, 0) scale(1.15); opacity: 0.32; }
+  }
+
+  @keyframes grooming-intro-exit {
+    to { opacity: 0; visibility: hidden; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grooming-intro,
+  .grooming-intro-content,
+  .grooming-intro-scissors,
+  .grooming-intro-snip,
+  .grooming-intro-spark,
+  .grooming-intro-glow {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+  }
 }
 
 @media print {

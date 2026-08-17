@@ -33,7 +33,14 @@ const iconMap = {
   sparkles: Sparkles,
 };
 
+const HOMEPAGE_INTRO_KEY = "good-groomed-homepage-intro-seen";
+
 export default function Index() {
+  const [showIntro, setShowIntro] = useState(() => {
+    if (typeof window === "undefined") return false;
+    if (new URLSearchParams(window.location.search).get("intro") === "1") return true;
+    return window.localStorage.getItem(HOMEPAGE_INTRO_KEY) !== "true";
+  });
   const nextAvailableDate = useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() + 1);
@@ -44,6 +51,14 @@ export default function Index() {
     return Object.keys(saved).length ? saved : { "full-groom": 1 };
   });
   const [services, setServices] = useState<Service[]>(getServices);
+
+  useEffect(() => {
+    if (!showIntro) return;
+    window.localStorage.setItem(HOMEPAGE_INTRO_KEY, "true");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const timeoutId = window.setTimeout(() => setShowIntro(false), reducedMotion ? 300 : 2750);
+    return () => window.clearTimeout(timeoutId);
+  }, [showIntro]);
 
   useEffect(() => {
     const syncServices = () => setServices(getServices());
@@ -103,6 +118,27 @@ export default function Index() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#f5f3ed] text-[#1e352c]">
+      {showIntro && (
+        <div className="grooming-intro" aria-hidden="true">
+          <div className="grooming-intro-panel grooming-intro-panel-top" />
+          <div className="grooming-intro-panel grooming-intro-panel-bottom" />
+          <div className="grooming-intro-glow grooming-intro-glow-one" />
+          <div className="grooming-intro-glow grooming-intro-glow-two" />
+          <div className="grooming-intro-cut" />
+          <div className="grooming-intro-runner">
+            <div className="grooming-intro-scissors">
+              <Scissors strokeWidth={1.8} />
+            </div>
+          </div>
+          <div className="grooming-intro-content">
+            <div className="grooming-intro-logo-mark">
+              <Scissors strokeWidth={2} />
+            </div>
+            <p className="grooming-intro-name">good &amp; groomed</p>
+            <p className="grooming-intro-tagline">care, cut just right</p>
+          </div>
+        </div>
+      )}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_2%,rgba(221,120,93,0.12),transparent_22rem),radial-gradient(circle_at_5%_78%,rgba(122,151,95,0.12),transparent_25rem)]" />
       <div className="relative mx-auto max-w-[1440px] px-5 pb-10 sm:px-8 lg:px-12">
         <header className="flex items-center justify-between border-b border-[#dfe1d8] py-6 lg:py-7">
