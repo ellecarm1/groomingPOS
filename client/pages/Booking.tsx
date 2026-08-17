@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -9,16 +9,20 @@ import {
   LockKeyhole,
   Scissors,
   ShieldCheck,
+  UserRound,
 } from "lucide-react";
 
 import {
   formatCurrency,
   formatDuration,
   getEstimate,
+  getPetParentMembers,
   getSelectedDuration,
   getServices,
   saveBooking,
+  savePetParentMember,
   type PetParentDetails,
+  type PetParentMember,
   type Service,
   type SelectedServices,
 } from "@/lib/catalog";
@@ -70,6 +74,18 @@ function isSlotAvailable(dateKey: string, time: string, durationMinutes: number)
   });
 }
 
+const emptyPetParent = (appointmentDate: string): PetParentDetails => ({
+  firstName: "",
+  lastName: "",
+  city: "",
+  state: "",
+  petName: "",
+  petBreed: "",
+  appointmentDate,
+  printedName: "",
+  signature: "",
+});
+
 type BookingPanelProps = {
   selected?: SelectedServices;
   services?: Service[];
@@ -94,23 +110,22 @@ export function BookingPanel({
   );
   const [selectedDate, setSelectedDate] = useState(dates[1].key);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [petParent, setPetParent] = useState<PetParentDetails>({
-    firstName: "",
-    lastName: "",
-    city: "",
-    state: "",
-    petName: "",
-    petBreed: "",
-    appointmentDate: dates[1].key,
-    printedName: "",
-    signature: "",
-  });
+  const [petParent, setPetParent] = useState<PetParentDetails>(() => emptyPetParent(dates[1].key));
+  const [members, setMembers] = useState<PetParentMember[]>(getPetParentMembers);
+  const [selectedMemberId, setSelectedMemberId] = useState("");
+  const [selectedPetName, setSelectedPetName] = useState("");
+  const [memberStatus, setMemberStatus] = useState("");
   const activeDate = dates.find((date) => date.key === selectedDate) || dates[1];
+  const selectedMember = members.find((member) => member.id === selectedMemberId);
   const isPetParentComplete = Object.values(petParent).every((value) => value.trim().length > 0);
-
-  useEffect(() => {
-    setSelectedTime(null);
-  }, [durationMinutes]);
+  const canSignUp = [
+    petParent.firstName,
+    petParent.lastName,
+    petParent.city,
+    petParent.state,
+    petParent.petName,
+    petParent.petBreed,
+  ].every((value) => value.trim().length > 0);
 
   const chooseDate = (dateKey: string) => {
     setSelectedDate(dateKey);
@@ -120,6 +135,49 @@ export function BookingPanel({
 
   const updatePetParent = (field: keyof PetParentDetails, value: string) => {
     setPetParent((current) => ({ ...current, [field]: value }));
+    setMemberStatus("");
+    if (field === "petName") setSelectedPetName(value);
+  };
+
+  const chooseMember = (memberId: string) => {
+    setSelectedMemberId(memberId);
+    setMemberStatus("");
+    const member = members.find((item) => item.id === memberId);
+    if (!member) {
+      setSelectedPetName("");
+      setPetParent(emptyPetParent(selectedDate));
+      return;
+    }
+    const firstPet = member.pets[0];
+    setSelectedPetName(firstPet?.name || "");
+    setPetParent((current) => ({
+      ...current,
+      firstName: member.firstName,
+      lastName: member.lastName,
+      city: member.city,
+      state: member.state,
+      petName: firstPet?.name || "",
+      petBreed: firstPet?.breed || "",
+      appointmentDate: selectedDate,
+    }));
+  };
+
+  const chooseSavedPet = (petName: string) => {
+    setSelectedPetName(petName);
+    const pet = selectedMember?.pets.find((savedPet) => savedPet.name === petName);
+    if (pet) setPetParent((current) => ({ ...current, petName: pet.name, petBreed: pet.breed }));
+  };
+
+  const signUpMember = () => {
+    if (!canSignUp) {
+      setMemberStatus("Complete the parent and pet details above to sign up.");
+      return;
+    }
+    const member = savePetParentMember(petParent);
+    setMembers(getPetParentMembers());
+    setSelectedMemberId(member.id);
+    setSelectedPetName(petParent.petName);
+    setMemberStatus(`${member.firstName} ${member.lastName} is saved for future visits.`);
   };
 
   const confirmBooking = () => {
@@ -137,7 +195,63 @@ export function BookingPanel({
 
   return (
     <div>
-      <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+      <section className="rounded-[28px] border border-[#e1e2da] bg-[#fbfaf7] p-5 shadow-[0_18px_50px_-35px_rgba(39,74,56,0.4)] sm:p-7" aria-labelledby="pet-parent-heading">
+        <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+          <div>
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-[#d2765d]">Step 01 · Pet parent</p>
+            <h2 id="pet-parent-heading" className="mt-1 font-display text-2xl font-bold tracking-[-0.045em] text-[#234438]">Welcome back, or meet us.</h2>
+            <p className="mt-2 text-sm leading-6 text-[#788278]">Look up a returning pet parent or add their details for a new visit.</p>
+          </div>
+          <div className="flex items-center gap-2 rounded-full bg-[#e6eedf] px-3 py-2 text-[11px] font-extrabold text-[#5c7848]"><UserRound className="h-3.5 w-3.5" /> {members.length} saved {members.length === 1 ? "member" : "members"}</div>
+        </div>
+
+        <label className="block">
+          <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.1em] text-[#748177]">Find a returning pet parent</span>
+          <select value={selectedMemberId} onChange={(event) => chooseMember(event.target.value)} className="h-12 w-full rounded-xl border border-[#cbdac4] bg-[#f1f5ec] px-4 text-sm font-bold text-[#315244] outline-none transition focus:border-[#7d9e72] focus:ring-4 focus:ring-[#e6eedf]">
+            <option value="">Look up by pet parent name</option>
+            {members.map((member) => <option key={member.id} value={member.id}>{member.firstName} {member.lastName} · {member.pets.length} {member.pets.length === 1 ? "pet" : "pets"}</option>)}
+          </select>
+        </label>
+
+        {selectedMember && (
+          <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-[#dce8d6] bg-[#f1f5ec] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div><p className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#789073]">Returning member</p><p className="mt-0.5 text-sm font-bold text-[#315244]">{selectedMember.firstName} {selectedMember.lastName} · {selectedMember.pets.length} saved {selectedMember.pets.length === 1 ? "pet" : "pets"}</p></div>
+            <select value={selectedPetName} onChange={(event) => chooseSavedPet(event.target.value)} className="h-10 rounded-xl border border-[#cbdac4] bg-white px-3 text-xs font-bold text-[#315244] outline-none focus:border-[#7d9e72]"><option value="">Choose a saved pet</option>{selectedMember.pets.map((pet) => <option key={pet.name} value={pet.name}>{pet.name} · {pet.breed}</option>)}</select>
+          </div>
+        )}
+
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          {([
+            ["firstName", "First name", "Your first name"],
+            ["lastName", "Last name", "Your last name"],
+            ["city", "City", "Brooklyn"],
+            ["state", "State", "NY"],
+            ["petName", "Pet’s name", "Their name"],
+            ["petBreed", "Pet’s breed", "Golden retriever"],
+          ] as const).map(([field, label, placeholder]) => (
+            <label key={field} className="block">
+              <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.1em] text-[#748177]">{label} <span className="text-[#d2765d]">*</span></span>
+              <input required aria-required="true" value={petParent[field]} onChange={(event) => updatePetParent(field, event.target.value)} placeholder={placeholder} className="h-12 w-full rounded-xl border border-[#dfe2da] bg-white px-4 text-sm font-semibold text-[#315244] outline-none transition placeholder:font-normal placeholder:text-[#b0b7ac] focus:border-[#7d9e72] focus:ring-4 focus:ring-[#e6eedf]" />
+            </label>
+          ))}
+          <label className="block">
+            <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.1em] text-[#748177]">Appointment date <span className="text-[#d2765d]">*</span></span>
+            <input required aria-required="true" readOnly value={activeDate.label} className="h-12 w-full rounded-xl border border-[#dfe2da] bg-[#f1f5ec] px-4 text-sm font-bold text-[#315244] outline-none" />
+          </label>
+        </div>
+
+        <div className="mt-8 grid gap-5 border-t border-[#e7e8e1] pt-6 sm:grid-cols-2">
+          <label className="block"><span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.1em] text-[#748177]">Pet parent printed name <span className="text-[#d2765d]">*</span></span><input required aria-required="true" value={petParent.printedName} onChange={(event) => updatePetParent("printedName", event.target.value)} placeholder="Print your full name" className="h-12 w-full rounded-xl border border-[#dfe2da] bg-white px-4 text-sm font-semibold text-[#315244] outline-none transition placeholder:font-normal placeholder:text-[#b0b7ac] focus:border-[#7d9e72] focus:ring-4 focus:ring-[#e6eedf]" /></label>
+          <label className="block"><span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.1em] text-[#748177]">Pet parent signature <span className="text-[#d2765d]">*</span></span><input required aria-required="true" value={petParent.signature} onChange={(event) => updatePetParent("signature", event.target.value)} placeholder="Type your signature" className="h-12 w-full rounded-xl border border-[#dfe2da] bg-transparent px-4 font-[cursive] text-lg italic text-[#315244] outline-none transition placeholder:font-normal placeholder:text-[#b0b7ac] focus:border-[#7d9e72] focus:ring-4 focus:ring-[#e6eedf]" /></label>
+        </div>
+
+        <div className="mt-6 flex flex-col items-start justify-between gap-3 border-t border-[#e7e8e1] pt-5 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-2 text-xs text-[#788278]"><ShieldCheck className="h-4 w-4 text-[#7d9e72]" /><span>{memberStatus || "New members are saved on this device for faster future visits."}</span></div>
+          <button type="button" onClick={signUpMember} className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#9dbb91] bg-white px-4 py-2.5 text-xs font-extrabold text-[#55734d] transition hover:bg-[#f1f5ec]">Sign up {selectedMember ? "updates saved member" : "new member"}</button>
+        </div>
+      </section>
+
+      <div className="mb-8 mt-10 flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[#d2765d]">{stepLabel}</p>
           <h2 className="mt-2 font-display text-[clamp(2.4rem,5vw,4.4rem)] font-bold leading-[0.95] tracking-[-0.07em] text-[#234438]">Find a good time.</h2>
@@ -182,45 +296,9 @@ export function BookingPanel({
         </aside>
       </div>
 
-      <section className="mt-6 rounded-[28px] border border-[#e1e2da] bg-[#fbfaf7] p-5 shadow-[0_18px_50px_-35px_rgba(39,74,56,0.4)] sm:p-7" aria-labelledby="pet-parent-heading">
-        <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
-          <div>
-            <p className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-[#d2765d]">Step 03 · Pet parent</p>
-            <h3 id="pet-parent-heading" className="mt-1 font-display text-2xl font-bold tracking-[-0.045em] text-[#234438]">Tell us who we’re caring for.</h3>
-            <p className="mt-2 text-sm leading-6 text-[#788278]">Every field is required so we can keep the appointment and invoice accurate.</p>
-          </div>
-          <span className="rounded-full bg-[#f2ead6] px-3 py-2 text-[11px] font-extrabold text-[#927337]">Required details</span>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          {([
-            ["firstName", "First name", "Your first name"],
-            ["lastName", "Last name", "Your last name"],
-            ["city", "City", "Brooklyn"],
-            ["state", "State", "NY"],
-            ["petName", "Pet’s name", "Their name"],
-            ["petBreed", "Pet’s breed", "Golden retriever"],
-          ] as const).map(([field, label, placeholder]) => (
-            <label key={field} className="block">
-              <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.1em] text-[#748177]">{label} <span className="text-[#d2765d]">*</span></span>
-              <input required aria-required="true" value={petParent[field]} onChange={(event) => updatePetParent(field, event.target.value)} placeholder={placeholder} className="h-12 w-full rounded-xl border border-[#dfe2da] bg-white px-4 text-sm font-semibold text-[#315244] outline-none transition placeholder:font-normal placeholder:text-[#b0b7ac] focus:border-[#7d9e72] focus:ring-4 focus:ring-[#e6eedf]" />
-            </label>
-          ))}
-          <label className="block">
-            <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.1em] text-[#748177]">Appointment date <span className="text-[#d2765d]">*</span></span>
-            <input required aria-required="true" readOnly value={activeDate.label} className="h-12 w-full rounded-xl border border-[#dfe2da] bg-[#f1f5ec] px-4 text-sm font-bold text-[#315244] outline-none" />
-          </label>
-        </div>
-
-        <div className="mt-8 grid gap-5 border-t border-[#e7e8e1] pt-6 sm:grid-cols-2">
-          <label className="block"><span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.1em] text-[#748177]">Pet parent printed name <span className="text-[#d2765d]">*</span></span><input required aria-required="true" value={petParent.printedName} onChange={(event) => updatePetParent("printedName", event.target.value)} placeholder="Print your full name" className="h-12 w-full rounded-xl border border-[#dfe2da] bg-white px-4 text-sm font-semibold text-[#315244] outline-none transition placeholder:font-normal placeholder:text-[#b0b7ac] focus:border-[#7d9e72] focus:ring-4 focus:ring-[#e6eedf]" /></label>
-          <label className="block"><span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.1em] text-[#748177]">Pet parent signature <span className="text-[#d2765d]">*</span></span><input required aria-required="true" value={petParent.signature} onChange={(event) => updatePetParent("signature", event.target.value)} placeholder="Type your signature" className="h-12 w-full rounded-xl border border-[#dfe2da] bg-transparent px-4 font-[cursive] text-lg italic text-[#315244] outline-none transition placeholder:font-normal placeholder:text-[#b0b7ac] focus:border-[#7d9e72] focus:ring-4 focus:ring-[#e6eedf]" /></label>
-        </div>
-      </section>
-
       <div className="mt-6 rounded-[22px] border border-[#cbdac4] bg-[#e9f0e3] p-5 sm:p-6">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <div><p className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-[#6f905f]">Final step</p><p className="mt-1 font-display text-xl font-bold tracking-[-0.04em] text-[#234438]">Ready to confirm this visit?</p><p className="mt-1.5 text-xs leading-5 text-[#6b7d6a]">We’ll confirm final pricing in person.</p></div>
+          <div><p className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-[#6f905f]">Final step</p><p className="mt-1 font-display text-xl font-bold tracking-[-0.04em] text-[#234438]">Ready to confirm this visit?</p><p className="mt-1.5 text-xs leading-5 text-[#6b7d6a]">Choose a time and complete the Pet Parent section above first.</p></div>
           <button type="button" disabled={!selectedTime || !isPetParentComplete} onClick={confirmBooking} className="flex h-[52px] shrink-0 items-center justify-center gap-2 rounded-2xl bg-[#d2765d] px-6 py-3.5 text-sm font-extrabold text-white shadow-[0_12px_22px_-14px_rgba(210,118,93,0.9)] transition hover:bg-[#c66850] disabled:cursor-not-allowed disabled:opacity-50">Confirm appointment <ArrowRight className="h-4 w-4" /></button>
         </div>
       </div>

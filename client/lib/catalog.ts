@@ -35,9 +35,19 @@ export type Booking = {
   petParent?: PetParentDetails;
 };
 
+export type PetParentMember = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  city: string;
+  state: string;
+  pets: { name: string; breed: string }[];
+};
+
 const SERVICES_KEY = "good-groomed-services-v1";
 const ESTIMATE_KEY = "good-groomed-estimate-v1";
 const BOOKING_KEY = "good-groomed-booking-v1";
+const PET_PARENT_MEMBERS_KEY = "good-groomed-pet-parent-members-v1";
 export const SERVICES_UPDATED_EVENT = "good-groomed-services-updated";
 
 export const DEFAULT_SERVICES: Service[] = [
@@ -135,6 +145,45 @@ export function getBooking(): Booking | null {
   } catch {
     return null;
   }
+}
+
+export function getPetParentMembers(): PetParentMember[] {
+  if (typeof window === "undefined") return [];
+  const stored = window.localStorage.getItem(PET_PARENT_MEMBERS_KEY);
+  if (!stored) return [];
+  try {
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? (parsed as PetParentMember[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function savePetParentMember(details: Pick<PetParentDetails, "firstName" | "lastName" | "city" | "state" | "petName" | "petBreed">) {
+  const members = getPetParentMembers();
+  const normalizedName = `${details.firstName} ${details.lastName}`.trim().toLowerCase();
+  const existing = members.find((member) => `${member.firstName} ${member.lastName}`.trim().toLowerCase() === normalizedName);
+  const pet = { name: details.petName.trim(), breed: details.petBreed.trim() };
+  const nextMember: PetParentMember = existing
+    ? {
+        ...existing,
+        city: details.city.trim(),
+        state: details.state.trim(),
+        pets: existing.pets.some((savedPet) => savedPet.name.toLowerCase() === pet.name.toLowerCase())
+          ? existing.pets.map((savedPet) => savedPet.name.toLowerCase() === pet.name.toLowerCase() ? pet : savedPet)
+          : [...existing.pets, pet],
+      }
+    : {
+        id: `member-${Date.now()}`,
+        firstName: details.firstName.trim(),
+        lastName: details.lastName.trim(),
+        city: details.city.trim(),
+        state: details.state.trim(),
+        pets: [pet],
+      };
+  const nextMembers = existing ? members.map((member) => member.id === existing.id ? nextMember : member) : [...members, nextMember];
+  window.localStorage.setItem(PET_PARENT_MEMBERS_KEY, JSON.stringify(nextMembers));
+  return nextMember;
 }
 
 export function getSelectedDuration(selected: SelectedServices, services: Service[]) {
