@@ -14,12 +14,25 @@ export type Service = {
 
 export type SelectedServices = Record<string, number>;
 
+export type PetParentDetails = {
+  firstName: string;
+  lastName: string;
+  city: string;
+  state: string;
+  petName: string;
+  petBreed: string;
+  appointmentDate: string;
+  printedName: string;
+  signature: string;
+};
+
 export type Booking = {
   dateKey: string;
   dateLabel: string;
   time: string;
   durationMinutes: number;
   selected: SelectedServices;
+  petParent?: PetParentDetails;
 };
 
 const SERVICES_KEY = "good-groomed-services-v1";
