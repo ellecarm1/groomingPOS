@@ -7,7 +7,8 @@ import { Sparkles, Sun } from "lucide-react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
+import { getCurrentUser } from "@/lib/catalog";
 import Index from "./pages/Index";
 import Booking from "./pages/Booking";
 import Admin from "./pages/Admin";
@@ -15,8 +16,11 @@ import Invoice from "./pages/Invoice";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
-
 const NEON_MODE_KEY = "good-groomed-neon-mode";
+
+function ProtectedRoute({ children }: { children: JSX.Element }) {
+  return getCurrentUser() ? children : <Navigate to="/admin" replace />;
+}
 
 const App = () => {
   const [neonMode, setNeonMode] = useState(() => localStorage.getItem(NEON_MODE_KEY) === "true");
@@ -33,10 +37,10 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/booking" element={<Booking />} />
+              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+              <Route path="/booking" element={<ProtectedRoute><Booking /></ProtectedRoute>} />
               <Route path="/admin" element={<Admin />} />
-              <Route path="/invoice" element={<Invoice />} />
+              <Route path="/invoice" element={<ProtectedRoute><Invoice /></ProtectedRoute>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

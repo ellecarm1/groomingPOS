@@ -1,4 +1,4 @@
-import { CalendarDays, CheckCircle2, Scissors } from "lucide-react";
+import { CalendarDays, CheckCircle2, Scissors, UserRound } from "lucide-react";
 
 import {
   formatCurrency,
@@ -57,6 +57,22 @@ export function InvoicePreview({ services, selected, booking = null }: InvoicePr
             <CalendarDays className="h-4 w-4 text-[#6f905f]" />
             {booking.dateLabel} at {booking.time}
             <span className="ml-auto hidden text-xs font-semibold text-[#789073] sm:inline">{formatDuration(booking.durationMinutes)}</span>
+          </div>
+        )}
+
+        {booking?.petParent && (
+          <div className="mt-7 rounded-2xl border border-[#e1e8dc] bg-[#f7f9f3] p-5">
+            <div className="flex items-center gap-2 text-[#315244]"><UserRound className="h-4 w-4 text-[#6f905f]" /><p className="text-[11px] font-extrabold uppercase tracking-[0.14em]">Pet parent details</p></div>
+            <div className="mt-4 grid gap-x-5 gap-y-3 text-sm sm:grid-cols-2">
+              <div><p className="text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#9aa49a]">Pet parent</p><p className="mt-1 font-bold text-[#315244]">{booking.petParent.firstName} {booking.petParent.lastName}</p></div>
+              <div><p className="text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#9aa49a]">City / State</p><p className="mt-1 font-bold text-[#315244]">{booking.petParent.city}, {booking.petParent.state}</p></div>
+              <div><p className="text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#9aa49a]">Pet</p><p className="mt-1 font-bold text-[#315244]">{booking.petParent.petName} · {booking.petParent.petBreed}</p></div>
+              <div><p className="text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#9aa49a]">Appointment date</p><p className="mt-1 font-bold text-[#315244]">{booking.dateLabel}</p></div>
+            </div>
+            <div className="mt-5 grid gap-5 border-t border-[#e1e8dc] pt-4 sm:grid-cols-2">
+              <div><p className="text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#9aa49a]">Printed name</p><p className="mt-2 border-b border-[#9eaea0] pb-2 font-semibold text-[#315244]">{booking.petParent.printedName}</p></div>
+              <div><p className="text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#9aa49a]">Signature</p><p className="mt-2 border-b border-[#9eaea0] pb-2 font-[cursive] text-lg italic text-[#315244]">{booking.petParent.signature}</p></div>
+            </div>
           </div>
         )}
 
